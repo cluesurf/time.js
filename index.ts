@@ -1,28 +1,164 @@
-export default {
-  point,
-  range,
+export type SpanType = {
+  type: 'span'
+  second: number
+  minute: number
+  hour: number
+  day: number
+  week: number
+  month: number
+  year: number
+  decade: number
+  century: number
+  thousand: number
+  million: number
+  billion: number
+  relative: boolean
 }
 
-export function range(range: string) {}
+export type RangeType = {
+  type: 'range'
+  start: SpanType
+  end: SpanType
+}
 
-export function point(time: string, fuzz?: string | number) {
-  if (time.match(/(\d+)\w* century (?:bce?|b\.c\.e\.|b\.c\.)/i)) {
-    return buildCenturyBCE(RegExp.$1)
-  } else if (time.match(/(\d+)\w* century (?:ce|ad|c\.e\.|a\.d\.)/i)) {
-    return buildCentury(RegExp.$1)
-  } else if (time.match(/(\d+)\w* century/i)) {
-    return buildCentury(RegExp.$1)
-  } else if (time.match(/(\d+)\w* (?:bce?|b\.c\.e\.|b\.c\.)/i)) {
+export default parse
+
+export function parse(time: string) {
+  if (
+    time.match(
+      /^(\d+)\s*[-‒–—―]\s*(\d+)\s+(million|billion|thousand|hundred) (year|week|month|day|hour|minute|second)s? ago$/i,
+    )
+  ) {
+    return buildLargeRange(
+      RegExp.$1,
+      RegExp.$2,
+      RegExp.$3,
+      RegExp.$4,
+      tp,
+    )
+  } else if (
+    time.match(
+      /^(\d+)\s*[-‒–—―]\s*(\d+)\s+(million|billion|thousand|hundred) (year|week|month|day|hour|minute|second)s?$/i,
+    )
+  ) {
+    return buildLargeRange(
+      RegExp.$1,
+      RegExp.$2,
+      RegExp.$3,
+      RegExp.$4,
+      ts,
+    )
+  } else if (time.match(/^(\d+)\s*[-‒–—―]\s*(\d+)\s+(kmb)ya?$/i)) {
+    return buildLargeRange(
+      RegExp.$1,
+      RegExp.$2,
+      RegExp.$3,
+      RegExp.$4,
+      tp,
+    )
+  } else if (time.match(/^(\d+)s$/i)) {
+    return buildTimePeriod(RegExp.$1)
+  } else if (
+    time.match(
+      /^(\d+)\w* (century|decade|year) (?:bce?|b\.c\.e\.|b\.c\.)$/i,
+    )
+  ) {
+    return buildPeriodBCE(RegExp.$1, RegExp.$2)
+  } else if (
+    time.match(
+      /^(\d+)(?:th|st|nd|rd)? (century|decade|year) (?:ce|ad|c\.e\.|a\.d\.)$/i,
+    )
+  ) {
+    return buildPeriod(RegExp.$1, RegExp.$2)
+  } else if (
+    time.match(/^(\d+)(?:th|st|nd|rd)? (century|decade|year)$/i)
+  ) {
+    return buildPeriod(RegExp.$1, RegExp.$2)
+  } else if (time.match(/^(\d+)\s*(?:bce?|b\.c\.e\.|b\.c\.)$/i)) {
     return buildBCE(RegExp.$1)
-  } else if (time.match(/(\d+)\w* bp/i)) {
+  } else if (time.match(/^(\d+)\s*(?:bp|b\.p\.)$/i)) {
     return buildBP(RegExp.$1)
-  } else if (time.match(/(\d+)\w* (?:ce|ad|c\.e\.|a\.d\.)/i)) {
+  } else if (time.match(/^(\d+)\s*(?:ce|ad|c\.e\.|a\.d\.)$/i)) {
     return buildYear(RegExp.$1)
-  } else if (time.match(/(\d+)([kmbGM])ya/)) {
+  } else if (time.match(/^(\d+)\s*([kmbGM])ya$/)) {
     return buildLargeYearsAgo(RegExp.$1, RegExp.$2)
   } else if (time.match(/^(\d+)$/)) {
     return buildYear(RegExp.$1)
-  } else if (time.match(/([kMGTPE])a/)) {
+  } else if (time.match(/^([\d,\.]+)\s*([kMGTPE])a$/)) {
+    return buildLargeSpan(RegExp.$1, RegExp.$2)
+  } else if (
+    time.match(/^([\d,\.]+)\s+(year|day|week|month)s? ago$/i)
+  ) {
+    return buildHumanPoint(RegExp.$1, RegExp.$2)
+  } else if (time.match(/^([\d,\.]+)\s+(year|day|week|month)s?$/i)) {
+    return buildHumanSpan(RegExp.$1, RegExp.$2)
+  }
+}
+
+function buildLargeRange(
+  startNumeric: string,
+  endNumeric: string,
+  scale: string,
+  period: string,
+  builder: (v: any) => SpanType,
+) {
+  let start = parseNumber(startNumeric)
+  let end = parseNumber(endNumeric)
+
+  switch (scale) {
+    case 'hundred':
+      start *= 100
+      end *= 100
+      break
+    case 'thousand':
+      start *= 1000
+      end *= 1000
+      break
+    case 'million':
+      start *= 1000000
+      end *= 1000000
+      break
+    case 'billion':
+      start *= 1000000000
+      end *= 1000000000
+      break
+  }
+
+  return tr({
+    start: builder({ [period]: start }),
+    end: builder({ [period]: end }),
+  })
+}
+
+function buildHumanSpan(numeric: string, period: string) {
+  const num = parseNumber(numeric)
+  return ts({ [period]: num })
+}
+
+function buildHumanPoint(numeric: string, period: string) {
+  const num = parseNumber(numeric)
+  return tp({ [period]: -num })
+}
+
+function parseNumber(numeric: string) {
+  return Number(numeric.replace(/[,_]/g, ''))
+}
+
+// 1500s, 1610s
+function buildTimePeriod(numeric: string) {
+  const num = parseNumber(numeric)
+  if (num % 100 === 0) {
+    return tr({
+      start: tp({ year: num - 1970 }),
+      end: tp({ year: num + 100 - 1970 }),
+    })
+  } else if (num % 10 === 0) {
+    return tr({
+      start: tp({ year: num - 1970 }),
+      end: tp({ year: num + 10 - 1970 }),
+    })
+  } else {
+    return tp({ year: num - 1970 })
   }
 }
 
@@ -33,49 +169,85 @@ export function point(time: string, fuzz?: string | number) {
 // - Pa (for petaannus) One quadrillion years.
 // - Ea (for exaannus)
 
-function buildLargeYears() {}
-
-function buildYear(numeric: string) {
-  const num = parseInt(numeric, 10)
-  return ts({ year: num - 1970 })
-}
-
-function buildLargeYearsAgo(numeric: string, scale: string) {
-  const num = parseInt(numeric, 10)
+function buildLargeSpan(numeric: string, scale: string) {
+  const num = parseNumber(numeric)
   switch (scale) {
     case 'k':
-      return ts({ thousand: -num })
-    case 'm':
+      return ts({ thousand: num })
     case 'M':
-      return ts({ million: -num })
-    case 'b':
+      return ts({ million: num })
     case 'G':
-      return ts({ billion: -num })
+      return ts({ billion: num })
+    default:
+      throw new Error(`Too large a time span`)
   }
 }
 
-function buildCentury(numeric: string) {
-  const num = parseInt(numeric, 10)
-  return ts({ year: -70, century: num })
+function buildYear(numeric: string) {
+  const num = parseNumber(numeric)
+  return tp({ year: num - 1970 })
 }
 
-function buildCenturyBCE(numeric: string) {
-  const num = parseInt(numeric, 10)
-  return ts({ year: -70, century: -19 - num })
+function buildLargeYearsAgo(numeric: string, scale: string) {
+  const num = parseNumber(numeric)
+  switch (scale) {
+    case 'k':
+      return tp({ thousand: -num })
+    case 'm':
+    case 'M':
+      return tp({ million: -num })
+    case 'b':
+    case 'G':
+      return tp({ billion: -num })
+    default:
+      throw new Error(`Unhandled type`)
+  }
+}
+
+function buildPeriod(numeric: string, period: string) {
+  const num = parseNumber(numeric)
+  switch (period) {
+    case 'century':
+      return tp({ year: -70, century: num - 19 })
+    case 'decade':
+      return tp({ year: -70, century: -19, decade: num })
+    default:
+      throw new Error(`Unhandled type`)
+  }
+}
+
+function buildPeriodBCE(numeric: string, period: string) {
+  const num = parseNumber(numeric)
+  switch (period) {
+    case 'century':
+      return tp({ year: -70, century: -19 - num })
+    case 'decade':
+      return tp({ year: -70, century: -19, decade: -num })
+    default:
+      throw new Error(`Unhandled type`)
+  }
 }
 
 function buildBCE(numeric: string) {
-  const num = parseInt(numeric, 10)
-  return ts({ year: -num, century: -19 })
+  const num = parseNumber(numeric)
+  return tp({ year: -num, century: -19 })
 }
 
 // before 1950, so subtract 20 from 1970
 function buildBP(numeric: string) {
-  const num = parseInt(numeric, 10)
-  return ts({ year: -20 - num })
+  const num = parseNumber(numeric)
+  return tp({ year: -20 - num })
 }
 
-function ts({
+function tr({ start, end }): RangeType {
+  return {
+    type: 'range',
+    start,
+    end,
+  }
+}
+
+function tp({
   second = 0,
   minute = 0,
   hour = 0,
@@ -88,8 +260,9 @@ function ts({
   thousand = 0,
   million = 0,
   billion = 0,
-} = {}) {
-  return {
+} = {}): SpanType {
+  return ts({
+    relative: true,
     second,
     minute,
     hour,
@@ -102,5 +275,38 @@ function ts({
     thousand,
     million,
     billion,
+  })
+}
+
+function ts({
+  relative = false,
+  second = 0,
+  minute = 0,
+  hour = 0,
+  day = 0,
+  week = 0,
+  month = 0,
+  year = 0,
+  decade = 0,
+  century = 0,
+  thousand = 0,
+  million = 0,
+  billion = 0,
+} = {}): SpanType {
+  return {
+    type: 'span',
+    second,
+    minute,
+    hour,
+    day,
+    week,
+    month,
+    year,
+    decade,
+    century,
+    thousand,
+    million,
+    billion,
+    relative,
   }
 }

@@ -47,6 +47,10 @@ function show(expression) {
 
 MIT
 
+## Notes
+
+- https://en.wikipedia.org/wiki/Epoch_(astronomy)
+
 ## NerdBond
 
 This is being developed by the folks at [NerdBond](https://nerd.bond), a
