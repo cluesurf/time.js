@@ -1,7 +1,6 @@
 {
   "name": "@nerdbond/time",
   "version": "0.0.1",
-  "main": "./host/index.js",
   "scripts": {
     "make": "tsc && tsc-alias",
     "scan": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",

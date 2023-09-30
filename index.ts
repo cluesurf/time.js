@@ -149,16 +149,16 @@ function buildTimePeriod(numeric: string) {
   const num = parseNumber(numeric)
   if (num % 100 === 0) {
     return tr({
-      start: tp({ year: num - 1970 }),
-      end: tp({ year: num + 100 - 1970 }),
+      start: tp(distributeYear(num - 1970)),
+      end: tp(distributeYear(num + 100 - 1970)),
     })
   } else if (num % 10 === 0) {
     return tr({
-      start: tp({ year: num - 1970 }),
-      end: tp({ year: num + 10 - 1970 }),
+      start: tp(distributeYear(num - 1970)),
+      end: tp(distributeYear(num + 10 - 1970)),
     })
   } else {
-    return tp({ year: num - 1970 })
+    return tp(distributeYear(num - 1970))
   }
 }
 
@@ -207,8 +207,11 @@ function buildLargeYearsAgo(numeric: string, scale: string) {
 function buildPeriod(numeric: string, period: string) {
   const num = parseNumber(numeric)
   switch (period) {
-    case 'century':
-      return tp({ year: -70, century: num - 19 })
+    case 'century': {
+      const centuryToYear = (num - 19) * 100
+      const data = distributeYear(centuryToYear - 70)
+      return tp(data)
+    }
     case 'decade':
       return tp({ year: -70, century: -19, decade: num })
     default:
@@ -219,8 +222,11 @@ function buildPeriod(numeric: string, period: string) {
 function buildPeriodBCE(numeric: string, period: string) {
   const num = parseNumber(numeric)
   switch (period) {
-    case 'century':
-      return tp({ year: -70, century: -19 - num })
+    case 'century': {
+      const centuryToYear = (-19 - num) * 100
+      const data = distributeYear(centuryToYear - 70)
+      return tp(data)
+    }
     case 'decade':
       return tp({ year: -70, century: -19, decade: -num })
     default:
@@ -230,13 +236,15 @@ function buildPeriodBCE(numeric: string, period: string) {
 
 function buildBCE(numeric: string) {
   const num = parseNumber(numeric)
-  return tp({ year: -num, century: -19 })
+  const data = distributeYear(-1970 - num)
+  return tp(data)
 }
 
 // before 1950, so subtract 20 from 1970
 function buildBP(numeric: string) {
   const num = parseNumber(numeric)
-  return tp({ year: -20 - num })
+  const data = distributeYear(-20 - num)
+  return tp(data)
 }
 
 function tr({ start, end }): RangeType {
@@ -309,4 +317,42 @@ function ts({
     billion,
     relative,
   }
+}
+
+function distributeYear(integer: number) {
+  let n = integer
+
+  const thousand = Math.ceil(n / 1000)
+
+  n = n - thousand * 1000
+
+  const century = Math.ceil(n / 100)
+
+  n = n - century * 100
+
+  const decade = Math.ceil(n / 10)
+
+  n = n - decade * 10
+
+  const year = Math.ceil(n)
+
+  const data: Record<string, number> = {}
+
+  if (thousand) {
+    data.thousand = thousand
+  }
+
+  if (century) {
+    data.century = century
+  }
+
+  if (decade) {
+    data.decade = decade
+  }
+
+  if (year) {
+    data.year = year
+  }
+
+  return data
 }
