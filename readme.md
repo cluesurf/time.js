@@ -6,7 +6,7 @@
 <br/>
 <br/>
 
-<h3 align='center'>@nerdbond/time</h3>
+<h3 align='center'>@wavebond/time</h3>
 <p align='center'>
   Semi-structured natural language time parsing in TypeScript
 </p>
@@ -18,7 +18,7 @@
 ## Usage
 
 ```ts
-import time from '@nerdbond/time'
+import time from '@wavebond/time'
 
 show('15th century bce') // { year: -70, century: -34 }
 show('15th century') // { year: -70, century: 15 }
@@ -51,11 +51,11 @@ MIT
 
 - https://en.wikipedia.org/wiki/Epoch_(astronomy)
 
-## NerdBond
+## WaveBond
 
-This is being developed by the folks at [NerdBond](https://nerd.bond), a
+This is being developed by the folks at [WaveBond](https://wave.bond), a
 California-based project for helping humanity master information and
-computation. Find us on [Twitter](https://twitter.com/nerdbond),
-[LinkedIn](https://www.linkedin.com/company/nerdbond), and
-[Facebook](https://www.facebook.com/nerdbond). Check out our other
-[GitHub projects](https://github.com/nerdbond) as well!
+computation. Find us on [Twitter](https://twitter.com/wavebond),
+[LinkedIn](https://www.linkedin.com/company/wavebond), and
+[Facebook](https://www.facebook.com/wavebond). Check out our other
+[GitHub projects](https://github.com/wavebond) as well!
