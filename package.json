@@ -1,5 +1,5 @@
 {
-  "name": "@wavebond/time",
+  "name": "@textsurf/time",
   "version": "0.0.1",
   "scripts": {
     "make": "tsc && tsc-alias",
