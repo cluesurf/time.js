@@ -6,7 +6,7 @@
 <br/>
 <br/>
 
-<h3 align='center'>@textsurf/time</h3>
+<h3 align='center'>@termsurf/time</h3>
 <p align='center'>
   Semi-structured natural language time parsing in TypeScript
 </p>
@@ -18,7 +18,7 @@
 ## Usage
 
 ```ts
-import time from '@textsurf/time'
+import time from '@termsurf/time'
 
 show('15th century bce') // { year: -70, century: -34 }
 show('15th century') // { year: -70, century: 15 }
@@ -51,11 +51,11 @@ MIT
 
 - https://en.wikipedia.org/wiki/Epoch_(astronomy)
 
-## TextSurf
+## TermSurf
 
-This is being developed by the folks at [TextSurf](https://text.surf), a
+This is being developed by the folks at [TermSurf](https://term.surf), a
 California-based project for helping humanity master information and
-computation. Find us on [Twitter](https://twitter.com/_textsurf),
-[LinkedIn](https://www.linkedin.com/company/textsurf), and
-[Facebook](https://www.facebook.com/textsurf). Check out our other
-[GitHub projects](https://github.com/textsurf) as well!
+computation. Find us on [Twitter](https://twitter.com/_termsurf),
+[LinkedIn](https://www.linkedin.com/company/termsurf), and
+[Facebook](https://www.facebook.com/termsurf). Check out our other
+[GitHub projects](https://github.com/termsurf) as well!

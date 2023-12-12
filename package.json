@@ -1,5 +1,5 @@
 {
-  "name": "@textsurf/time",
+  "name": "@termsurf/time",
   "version": "0.0.1",
   "scripts": {
     "make": "tsc && tsc-alias",
